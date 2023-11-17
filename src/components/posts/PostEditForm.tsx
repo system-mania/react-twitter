@@ -1,29 +1,36 @@
 import { FiImage } from 'react-icons/fi';
-import { useContext, useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
+import { useCallback, useEffect, useState } from 'react';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
-import AuthContext from 'context/AuthContext';
 import { db } from 'firebaseApp';
+import { useNavigate, useParams } from 'react-router-dom';
+import { PostProps } from 'pages/home';
 
-export default function PostForm() {
+export default function PostEditForm() {
+  const params = useParams();
+  const [post, setPost] = useState<PostProps | null>(null);
   const [content, setContent] = useState<string>('');
-  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const handleFileUpload = () => {};
+  const getPost = useCallback(async () => {
+    if (params.id) {
+      const docRef = doc(db, 'posts', params.id);
+      const docSnap = await getDoc(docRef);
+      setPost({ ...(docSnap?.data() as PostProps), id: docSnap?.id });
+      setContent(docSnap?.data()?.content);
+    }
+  }, [params.id]);
   const onSubmit = async (e: any) => {
     e.preventDefault();
     try {
-      await addDoc(collection(db, 'posts'), {
-        content: content,
-        createdAt: new Date()?.toLocaleDateString('ko', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit',
-        }),
-        email: user?.email,
-        uid: user?.uid,
-      });
-      setContent('');
-      toast.success('포스트가 작성되었습니다.');
+      if (post) {
+        const postRef = doc(db, 'posts', post.id);
+        await updateDoc(postRef, {
+          content: content,
+        });
+        navigate(`/posts/${post?.id}`);
+        toast.success('포스트를 수정했습니다.');
+      }
     } catch (e: any) {
       console.log(e);
     }
@@ -36,6 +43,13 @@ export default function PostForm() {
       setContent(value);
     }
   };
+
+  useEffect(() => {
+    if (params.id) {
+      getPost();
+    }
+  }, [getPost, params.id]);
+
   return (
     <form action="" className="post-form" onSubmit={onSubmit}>
       <textarea
@@ -58,7 +72,7 @@ export default function PostForm() {
           onChange={handleFileUpload}
           className="hidden"
         />
-        <input type="submit" value="Tweet" className="post-form__submit-btn" />
+        <input type="submit" value="수정" className="post-form__submit-btn" />
       </div>
     </form>
   );
