@@ -7,6 +7,7 @@ import AuthContext from 'context/AuthContext';
 import { db } from 'firebaseApp';
 
 export interface PostProps {
+  hashTags: any;
   id: string;
   email: string;
   content: string;
@@ -16,6 +17,7 @@ export interface PostProps {
   likes?: string[];
   likeCount?: number;
   comments?: any;
+  imageUrl?: string;
 }
 
 export default function HomePage() {
