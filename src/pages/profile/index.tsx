@@ -1,3 +1,4 @@
+import { languageState } from 'atom';
 import PostBox from 'components/posts/PostBox';
 import AuthContext from 'context/AuthContext';
 import {
@@ -12,6 +13,7 @@ import { PostProps } from 'pages/home';
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useRecoilState } from 'recoil';
 const PROFILE_DEFAULT_URL =
   'https://firebasestorage.googleapis.com/v0/b/react-twitter-3e8cd.appspot.com/o/J3GFtJ05N0MKcZEKIoeS0yOkTD22%2Flogo512.png?alt=media&token=5a9764f6-e7a0-4d8b-aa91-69d81c0b1c86';
 type TabType = 'my' | 'like';
@@ -21,7 +23,17 @@ export default function ProfilePage() {
   const [myPosts, setMyPosts] = useState<PostProps[]>([]);
   const [likePosts, setLikePosts] = useState<PostProps[]>([]);
   const navigate = useNavigate();
+  const [language, setLanguage] = useRecoilState(languageState);
   const { user } = useContext(AuthContext);
+
+  const onClickLanguage = () => {
+    if (language === 'ko') {
+      setLanguage('en');
+    } else {
+      setLanguage('ko');
+    }
+    localStorage.setItem('language', language === 'ko' ? 'en' : 'ko');
+  };
 
   useEffect(() => {
     if (user) {
@@ -68,12 +80,20 @@ export default function ProfilePage() {
             width={100}
             height={100}
           />
-          <button
-            type="button"
-            className="profile__btn"
-            onClick={() => navigate('/profile/edit')}>
-            프로필 수정
-          </button>
+          <div className="profile__flex">
+            <button
+              type="button"
+              className="profile__btn"
+              onClick={() => navigate('/profile/edit')}>
+              프로필 수정
+            </button>
+            <button
+              type="button"
+              className="profile__btn--language"
+              onClick={onClickLanguage}>
+              {language === 'ko' ? '한국어' : 'English'}
+            </button>
+          </div>
         </div>
         <div className="profile__text">
           <div className="profile__name">{user?.displayName || '사용자님'}</div>
