@@ -2,8 +2,10 @@ import AuthContext from 'context/AuthContext';
 import { PostProps } from 'pages/home';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import {
+  addDoc,
   arrayRemove,
   arrayUnion,
+  collection,
   doc,
   onSnapshot,
   setDoc,
@@ -48,6 +50,20 @@ export default function FollowingBox({ post }: FollowingProps) {
           },
           { merge: true }
         );
+
+        //팔로잉 알림 생성
+        await addDoc(collection(db, 'notifications'), {
+          createdAt: new Date()?.toLocaleDateString('ko', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          }),
+          uid: post.uid,
+          isRead: false,
+          url: '#',
+          content: `${user?.email || user?.displayName}님이 팔로우를 했습니다.`,
+        });
+
         toast.success('팔로우를 했습니다');
       }
     } catch (err) {
